@@ -88,8 +88,11 @@ class InferenceSlicer:
             model = YOLO(...)
 
             def callback(image_slices: List[np.ndarray]) -> List[sv.Detections]:
-                result = model(image_slices)[0]
-                return sv.Detections.from_ultralytics(result)
+                results = model(image_slices)[0]
+                detections = []
+                for result in results:
+                    detections.append(sv.Detections.from_ultralytics(result))
+                return detections
 
             slicer = sv.InferenceSlicer(callback = callback)
 

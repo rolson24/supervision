@@ -290,13 +290,13 @@ class ByteTrack:
                 if i == 0:
                     final_detections = detections[[idet]]
                     if final_detections.tracker_id is None:
-                        final_detections.tracker_id = [int(tracks[itrack].track_id)]
+                        final_detections.tracker_id = np.asarray([int(tracks[itrack].track_id)])
                     else:
                         final_detections.tracker_id[0] = int(tracks[itrack].track_id)
                 else:
                     current_detection = detections[[idet]]                    
                     if current_detection.tracker_id is None:
-                        current_detection.tracker_id = [int(tracks[itrack].track_id)]
+                        current_detection.tracker_id = np.asarray([int(tracks[itrack].track_id)])
                     else:
                         current_detection.tracker_id[0] = int(tracks[itrack].track_id)
                     final_detections = Detections.merge(
