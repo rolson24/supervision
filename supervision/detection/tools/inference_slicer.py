@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, List
 
 import numpy as np
 
@@ -39,6 +39,7 @@ class InferenceSlicer:
         callback (Callable): A function that performs inference on a given image
             slice and returns detections.
         thread_workers (int): Number of threads for parallel execution.
+        batch_size (int): Number of slices in each batch for batch inference.
 
     Note:
         The class ensures that slices do not exceed the boundaries of the original
@@ -49,17 +50,19 @@ class InferenceSlicer:
 
     def __init__(
         self,
-        callback: Callable[[np.ndarray], Detections],
+        callback: Callable[[List[np.ndarray]], List[Detections]],
         slice_wh: Tuple[int, int] = (320, 320),
         overlap_ratio_wh: Tuple[float, float] = (0.2, 0.2),
         iou_threshold: Optional[float] = 0.5,
         thread_workers: int = 1,
+        batch_size: int = 1,
     ):
         self.slice_wh = slice_wh
         self.overlap_ratio_wh = overlap_ratio_wh
         self.iou_threshold = iou_threshold
         self.callback = callback
         self.thread_workers = thread_workers
+        self.batch_size = batch_size
 
     def __call__(self, image: np.ndarray) -> Detections:
         """
@@ -84,8 +87,8 @@ class InferenceSlicer:
             image = cv2.imread(SOURCE_IMAGE_PATH)
             model = YOLO(...)
 
-            def callback(image_slice: np.ndarray) -> sv.Detections:
-                result = model(image_slice)[0]
+            def callback(image_slices: List[np.ndarray]) -> List[sv.Detections]:
+                result = model(image_slices)[0]
                 return sv.Detections.from_ultralytics(result)
 
             slicer = sv.InferenceSlicer(callback = callback)
@@ -101,34 +104,49 @@ class InferenceSlicer:
             overlap_ratio_wh=self.overlap_ratio_wh,
         )
 
+        offsets_list = []
+        current_offsets = []
+        for i in range(offsets.shape[0]):
+            if i % self.batch_size and i != 0:
+                offsets_list.append(current_offsets)
+                current_offsets = []
+            current_offsets.append(offsets[i])
+
         with ThreadPoolExecutor(max_workers=self.thread_workers) as executor:
-            futures = [
-                executor.submit(self._run_callback, image, offset) for offset in offsets
+            futures_list = [
+                executor.submit(self._run_callback, image, offsets) for offsets in offsets_list
             ]
-            for future in as_completed(futures):
-                detections_list.append(future.result())
+            for futures in as_completed(futures_list):
+                futures = futures.result()
+                for future in futures:
+                    detections_list.append(future)
 
         return Detections.merge(detections_list=detections_list).with_nms(
             threshold=self.iou_threshold
         )
 
-    def _run_callback(self, image, offset) -> Detections:
+    def _run_callback(self, image, offsets) -> Detections:
         """
         Run the provided callback on a slice of an image.
 
         Args:
             image (np.ndarray): The input image on which inference needs to run
-            offset (np.ndarray): An array of shape `(4,)` containing coordinates
+            offset (List[np.ndarray]): A list of arrays of shape `(4,)` containing coordinates
                 for the slice.
 
         Returns:
             Detections: A collection of detections for the slice.
         """
-        image_slice = crop_image(image=image, xyxy=offset)
-        detections = self.callback(image_slice)
-        detections = move_detections(detections=detections, offset=offset[:2])
+        image_slice_list= []
+        for offset in offsets:
+            image_slice_list.append(crop_image(image=image, xyxy=offset))
 
-        return detections
+        detections_list = self.callback(image_slice_list)
+
+        for i in range(len(offsets)):
+            detections_list[i] = move_detections(detections=detections_list[i], offset=offsets[i][:2])
+
+        return detections_list
 
     @staticmethod
     def _generate_offset(
