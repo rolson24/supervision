@@ -304,7 +304,9 @@ class ByteTrack:
             return detections[detections.tracker_id != -1]
 
         else:
-            return Detections.empty()
+            detections = Detections.empty()
+            detections.tracker_id = np.array([], dtype=int)
+            return detections
 
     def reset(self):
         """
