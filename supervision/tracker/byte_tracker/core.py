@@ -290,7 +290,7 @@ class ByteTrack:
             return detections[detections.tracker_id != -1]
 
         else:
-            detections.tracker_id = np.array([], dtype=int)
+            detections.tracker_id = None
 
             return detections
 
