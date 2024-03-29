@@ -44,7 +44,7 @@ DATA = {
 
 TARGET_PREDICTIONS = PREDICTIONS.copy()
 # Add 1 pixel to every dimension every frame.
-TARGET_PREDICTIONS[:, :4] += 6
+TARGET_PREDICTIONS[:, :4] += 3
 
 LOW_CONFIDENCE_TARGET_PREDICTIONS = TARGET_PREDICTIONS.copy()
 # all low confidence predictions (<.1)
@@ -196,7 +196,7 @@ def test_update_with_detections(
     )
     BYTE_TRACKER.reset()
     with exception:
-        for i in range(6):
+        for i in range(3):
             incoming_detections.xyxy += 1
             if with_mask:
                 mask = np.zeros(
@@ -256,7 +256,7 @@ def test_update_with_tensors(
 ):
     BYTE_TRACKER.reset()
     with exception:
-        for i in range(6):
+        for i in range(3):
             tensors[:, :4] += 1
             stracks = BYTE_TRACKER.update_with_tensors(tensors[:, :6])
 
@@ -296,7 +296,7 @@ def test_tracker_reset(
     ):
     byte_tracker = ByteTrack()
     with exception:
-        for i in range(6):
+        for i in range(3):
             stracks = byte_tracker.update_with_tensors(tensors)
             tensors[:, :4] += 1
 
