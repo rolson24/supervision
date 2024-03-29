@@ -474,7 +474,7 @@ class ByteTrack:
         output_stracks = [
             track
             for track in self.tracked_tracks
-            if (track.is_activated and track.track_id >= 0)
+            if (track.is_activated)
         ]
 
         return output_stracks
