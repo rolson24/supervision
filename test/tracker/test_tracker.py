@@ -9,7 +9,7 @@ from supervision import ByteTrack
 from supervision.detection.core import Detections
 from supervision.tracker.byte_tracker.core import STrack
 
-BYTE_TRACKER = ByteTrack()
+BYTE_TRACKER = ByteTrack(track_buffer=30)
 
 IMG_HEIGHT = 1280
 IMG_WIDTH = 2560
