@@ -23,7 +23,6 @@ class STrack(BaseTrack):
         self.score = score
         self.class_ids = class_ids
         self.tracklet_len = 0
-        self.track_id = -1
 
         self.minimum_consecutive_frames = minimum_consecutive_frames
 
@@ -62,7 +61,7 @@ class STrack(BaseTrack):
 
         self.tracklet_len = 0
         self.state = TrackState.Tracked
-        if frame_id == 1:
+        if frame_id == 1 and self.minimum_consecutive_frames == 1:
             self.is_activated = True
         self.frame_id = frame_id
         self.start_frame = frame_id
@@ -73,7 +72,7 @@ class STrack(BaseTrack):
         )
         self.tracklet_len = 0
         self.state = TrackState.Tracked
-        self.is_activated = True
+
         self.frame_id = frame_id
         if new_id and (self.minimum_consecutive_frames == 1):
             self.track_id = self.next_id()
@@ -95,7 +94,8 @@ class STrack(BaseTrack):
             self.mean, self.covariance, self.tlwh_to_xyah(new_tlwh)
         )
         self.state = TrackState.Tracked
-        self.is_activated = True
+        if self.tracklet_len >= self.minimum_consecutive_frames:
+            self.is_activated = True
 
         self.score = new_track.score
 
