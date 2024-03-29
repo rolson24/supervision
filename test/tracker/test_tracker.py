@@ -279,7 +279,7 @@ for i, track in enumerate(TARGET_STRACKS):
     track.track_id = i + 1
 
 @pytest.mark.parametrize(
-    "tensors, target_stracks"
+    "tensors, target_stracks,"
     " exception",
     [
         (
