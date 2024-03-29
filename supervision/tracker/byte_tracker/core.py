@@ -99,7 +99,7 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
 
-        if self.tracklet_len == self.minimum_consecutive_frames:
+        if self.tracklet_len >= self.minimum_consecutive_frames:
             self.track_id = self.next_id()
 
     @property
