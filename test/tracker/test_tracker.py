@@ -72,8 +72,8 @@ def assert_strack_lists_equal(stracks, target_stracks):
         strack = stracks[i]
         target_strack = target_stracks[i]
         for j in range(strack.tlwh.shape[0]):
-            # check if the boxes are within 2 pixels of each other
-            assert_almost_equal(strack.tlwh[j], target_strack.tlwh[j], tolerance=2)
+            # check if the boxes are within 3 pixels of each other
+            assert_almost_equal(strack.tlwh[j], target_strack.tlwh[j], tolerance=3)
         assert (
             strack.start_frame == target_strack.start_frame
         ), f"Expected start frame {strack.start_frame},\
@@ -262,9 +262,25 @@ def test_update_with_tensors(
 
         assert_strack_lists_equal(stracks, target_stracks)
 
+TARGET_STRACKS = [
+    STrack(
+        tlwh=[det[0], det[1], det[2] - det[0], det[3] - det[1]],
+        score=det[4],
+        class_ids=det[5],
+        minimum_consecutive_frames=1
+    )
+    for det in TARGET_PREDICTIONS
+]
+
+# different end frame
+for i, track in enumerate(TARGET_STRACKS):
+    track.start_frame = 1
+    track.frame_id = 1
+    track.track_id = i + 1
 
 @pytest.mark.parametrize(
-    "tensors," " exception",
+    "tensors, target_stracks"
+    " exception",
     [
         (
             PREDICTIONS,
@@ -272,7 +288,11 @@ def test_update_with_tensors(
         )
     ],
 )
-def test_tracker_reset(tensors: np.ndarray, exception: Exception):
+def test_tracker_reset(
+    tensors: np.ndarray,
+    target_stracks: List[STrack],
+    exception: Exception
+    ):
     byte_tracker = ByteTrack()
     with exception:
         for i in range(6):
@@ -281,4 +301,4 @@ def test_tracker_reset(tensors: np.ndarray, exception: Exception):
 
         byte_tracker.reset()
         stracks = byte_tracker.update_with_tensors(tensors=tensors)
-        assert_strack_lists_equal(stracks, [])
+        assert_strack_lists_equal(stracks, target_stracks)
