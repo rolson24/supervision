@@ -225,6 +225,7 @@ TARGET_STRACKS = [
         tlwh=[det[0], det[1], det[2] - det[0], det[3] - det[1]],
         score=det[4],
         class_ids=det[5],
+        minimum_consecutive_frames=1
     )
     for det in TARGET_PREDICTIONS
 ]
