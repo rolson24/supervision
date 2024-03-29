@@ -58,11 +58,12 @@ class STrack(BaseTrack):
         self.mean, self.covariance = self.kalman_filter.initiate(
             self.tlwh_to_xyah(self._tlwh)
         )
-
+        self.track_id = self.next_id()
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         if frame_id == 1 and self.minimum_consecutive_frames == 1:
             self.is_activated = True
+        
         self.frame_id = frame_id
         self.start_frame = frame_id
 
