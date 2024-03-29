@@ -232,7 +232,7 @@ TARGET_STRACKS = [
 
 for i, track in enumerate(TARGET_STRACKS):
     track.start_frame = 1
-    track.frame_id = 6
+    track.frame_id = 3
     track.track_id = i + 1
 
 
