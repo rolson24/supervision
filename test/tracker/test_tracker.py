@@ -284,6 +284,7 @@ for i, track in enumerate(TARGET_STRACKS):
     [
         (
             PREDICTIONS,
+            TARGET_STRACKS,
             DoesNotRaise(),
         )
     ],
