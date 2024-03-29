@@ -268,7 +268,7 @@ def test_update_with_tensors(
     [
         (
             PREDICTIONS,
-            pytest.raises(ValueError),
+            DoesNotRaise(),
         )
     ],
 )
